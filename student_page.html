@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Welcome</h1>
+    <form action="{{ url_for('logout') }}"><button>Logout</button></form>
+  </header>
 
+  <section>
+    <h2>Your Classes</h2>
+        <div class="card">
+         
+            <button>Drop Out</button>
+        
+        </div>
+  </section>
+
+  <section>
+    <h2>Available Classes</h2>
+      <div class="card">
+        Enrolled<br>
+        Teacher:
+          <form method="post" action="{{ url_for('enroll', course_id=c.id) }}">
+            <button>Enroll</button>
+          </form>
+      </div>
+  </section>
+</body>
+</html>
