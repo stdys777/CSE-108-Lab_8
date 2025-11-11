@@ -22,7 +22,8 @@ export default function StudentPage() {
   }, []);
 
   if (booting) return <p>Loading</p>;
-  if (!me) return <Login onLogin={setMe} error={error} />;
+
+  if (!me) return <p>You are not logged in. Please go back to the login page.</p>;
 
   return (
     <div>
@@ -30,48 +31,17 @@ export default function StudentPage() {
       <button
         onClick={() => {
           fetch("/api/logout", { method: "POST", credentials: "include" })
-            .then(() => setMe(null))
+            .then(() => {
+              setMe(null);
+              window.location.href = "/";
+            })
             .catch(() => alert("Logout failed"));
         }}
-      >Logout</button>
+      >
+        Logout
+      </button>
 
       <StudentDashboard />
-    </div>
-  );
-}
-
-function Login({ onLogin, error }) {
-  const [user, setUser] = useState("");
-  const [password, setPass] = useState("");
-  const [msg, setMsg] = useState(error);
-
-  function handLog() {
-    setMsg("");
-    fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user, password }),
-      credentials: "include"
-    })
-      .then(r => r.json().then(j => ({ ok: r.ok, j })))
-      .then(({ ok, j }) => {
-        if (!ok || !j.success) throw new Error(j.message || "Invalid credentials");
-        onLogin(j.user);
-      })
-      .catch(e => setMsg(e.message));
-  }
-
-  return (
-    <div>
-      <h2>Student Login</h2>
-      <label>Username</label>
-      <input value={user} onChange={e => setUser(e.target.value)} />
-      <br />
-      <label>Password</label>
-      <input type="password" value={password} onChange={e => setPass(e.target.value)} />
-      <br />
-      {msg && <p>{msg}</p>}
-      <button onClick={handLog}>Login</button>
     </div>
   );
 }
@@ -94,7 +64,9 @@ function StudentDashboard() {
       .catch(() => setError("Failed to load all courses"));
   }
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   function enroll(courseId) {
     setBusy(true);
