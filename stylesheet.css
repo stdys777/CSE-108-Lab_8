@@ -1,0 +1,50 @@
+/* Outer container (square) */
+.background{
+    display: flex;
+    flex-direction: column;
+    justify-content: column;
+    align-items: center;
+    background-color: #ADD8E6;  /* Color for the outer square */
+    width: 30vw;  /* 80% of the viewport width */
+    height: 80vw; /* 80% of the viewport width, making it a square */
+    margin: 5vw;  /* Center the container itself if needed */
+}
+
+.content{
+    background-color: #5b9bd5;
+    width: 90vw; /* 50% of the outer container's width */
+    height: 70vw; /* 50% of the outer container's height, making it a square */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.title{
+    background-color:#5b9bd5;
+    width: 90vw;
+    height: 10vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.class{
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    width: 80%;  /* Make the container 80% of its parent width */
+    margin: 0 auto;
+    color: black;
+}
+
+.MuiTableContainer-root {
+    width: 90% !important; /* Force the table container to be smaller */
+    margin: 0 auto !important; /* Center the table */
+    box-shadow: none !important; /* Remove default shadow if desired */
+    color: black;
+}
+
+
+p{
+    color: aliceblue;
+}
