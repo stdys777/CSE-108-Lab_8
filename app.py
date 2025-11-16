@@ -10,7 +10,7 @@ app.config.from_object(Config)
 
 # Initialize extensions
 db.init_app(app)
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
