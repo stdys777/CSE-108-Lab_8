@@ -1,9 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 from config import Config
 from models import db, User, Course, enrollments
 
@@ -21,45 +19,11 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-class SecureModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.role == 'admin'
-    
-    def inaccessible_callback(self, name, **kwargs):
-        return jsonify({'error': 'Access denied'}), 403
+# Import and register blueprints (keep admin separate)
+from admin_views import init_admin
+init_admin(app, db, bcrypt)
 
-class UserAdminView(SecureModelView):
-    column_list = ['id', 'username', 'full_name', 'email', 'role']
-    column_searchable_list = ['username', 'full_name', 'email']
-    column_filters = ['role']
-    form_excluded_columns = ['password_hash', 'enrolled_courses', 'taught_courses']
-    
-    def on_model_change(self, form, model, is_created):
-        if is_created and hasattr(form, 'password'):
-            # Hash password on creation
-            model.password_hash = bcrypt.generate_password_hash(
-                form.password.data
-            ).decode('utf-8')
-
-class CourseAdminView(SecureModelView):
-    column_list = ['id', 'course_code', 'course_name', 'teacher', 'time_schedule', 
-                   'capacity', 'current_enrollment']
-    column_searchable_list = ['course_code', 'course_name']
-    column_filters = ['teacher']
-    
-    def _current_enrollment_formatter(view, context, model, name):
-        return model.current_enrollment()
-    
-    column_formatters = {
-        'current_enrollment': _current_enrollment_formatter
-    }
-
-# Initialize Flask-Admin
-admin = Admin(app, name='ACME Admin')
-admin.add_view(UserAdminView(User, db.session))
-admin.add_view(CourseAdminView(Course, db.session))
-
-#sample data used for testing database, we can take this out later
+# Sample data creation
 def create_sample_data():
     """Create sample users and courses for testing"""
     admin = User(
@@ -139,15 +103,38 @@ def create_sample_data():
 # Create database tables
 with app.app_context():
     db.create_all()
-    # Add sample data if database is empty
     if User.query.count() == 0:
         create_sample_data()
 
+# ===== SHARED API ENDPOINTS =====
 
-# API ENDPOINTS
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    from login_page import render_login_page
+    
+    if request.method == 'GET':
+        return render_login_page()
+    
+    # POST request - process login
+    username = request.form.get('username')
+    password = request.form.get('password')
+    user = User.query.filter_by(username=username).first()
+    
+    if user and bcrypt.check_password_hash(user.password_hash, password):
+        login_user(user)
+        if user.role == 'admin':
+            return redirect('/admin')
+        elif user.role == 'teacher':
+            return redirect('http://localhost:3000/teacher')  
+        elif user.role == 'student':
+            return redirect('http://localhost:3000/student')  
+    
+    return render_login_page(error="Invalid username or password")
 
 @app.route('/api/login', methods=['POST'])
-def login():
+def api_login():
+    """API endpoint for React frontend"""
     data = request.json
     user = User.query.filter_by(username=data.get('username')).first()
     
@@ -164,11 +151,19 @@ def login():
         })
     return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
 
+@app.route('/teacher', methods=['POST'])
+
 @app.route('/api/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
     return jsonify({'success': True})
+
+@app.route('/logout', methods=['GET'])
+@login_required
+def logout_button():
+    logout_user()
+    return redirect('/login')
 
 @app.route('/api/current-user', methods=['GET'])
 @login_required
