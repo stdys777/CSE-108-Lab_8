@@ -12,7 +12,10 @@ const theme = createTheme({
 export default function StudentPage() {
   const [me, setMe] = useState(null);
   const [myCourses, setMyCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [enrollingId, setEnrollingId] = useState(null);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     fetch("/api/current-user", { credentials: "include" })
@@ -26,16 +29,23 @@ export default function StudentPage() {
       .then((user) => {
         if (user) {
           setMe(user);
-          loadCourses();
+          loadMyCourses();
+          loadAllCourses();
         }
       })
       .finally(() => setLoading(false));
   }, []);
 
-  function loadCourses() {
+  function loadMyCourses() {
     fetch("/api/my-courses", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setMyCourses(data));
+  }
+
+  function loadAllCourses() {
+    fetch("/api/courses", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setAllCourses(data));
   }
 
   function logout() {
@@ -47,8 +57,37 @@ export default function StudentPage() {
     });
   }
 
+  function handleEnroll(courseId) {
+    setEnrollingId(courseId);
+    setMessage(null);
+
+    fetch(`/api/enroll/${courseId}`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) =>
+        res.json().then((data) => ({
+          ok: res.ok,
+          data,
+        }))
+      )
+      .then(({ ok, data }) => {
+        if (!ok) {
+          setMessage(data.message || "Enrollment failed.");
+        } else {
+          setMessage(data.message || "Enrolled successfully.");
+          loadMyCourses();
+          loadAllCourses();
+        }
+      })
+      .catch(() => setMessage("An error occurred while enrolling."))
+      .finally(() => setEnrollingId(null));
+  }
+
   if (loading) return <p>Loading...</p>;
   if (!me) return null;
+
+  const myCourseIds = myCourses.map((c) => c.id);
 
   return (
     <ThemeProvider theme={theme}>
@@ -63,6 +102,11 @@ export default function StudentPage() {
           </Box>
 
           <Box className="class">
+            {message && (
+              <p style={{ color: "yellow", marginBottom: "10px" }}>{message}</p>
+            )}
+
+            {/* Enrolled courses + grades */}
             <h2>Your Enrolled Courses</h2>
 
             {myCourses.length === 0 ? (
@@ -76,6 +120,7 @@ export default function StudentPage() {
                     <th>Teacher</th>
                     <th>Schedule</th>
                     <th>Enrolled</th>
+                    <th>Grade</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -88,8 +133,62 @@ export default function StudentPage() {
                       <td>
                         {c.enrolled}/{c.capacity}
                       </td>
+                      <td>{c.grade != null ? c.grade : "N/A"}</td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            )}
+
+            <hr style={{ margin: "20px 0" }} />
+
+            {/* All available courses */}
+            <h2>All Courses Offered</h2>
+
+            {allCourses.length === 0 ? (
+              <p>No courses are currently offered.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Course</th>
+                    <th>Name</th>
+                    <th>Teacher</th>
+                    <th>Schedule</th>
+                    <th>Enrolled</th>
+                    <th>Capacity</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allCourses.map((c) => {
+                    const alreadyEnrolled = myCourseIds.includes(c.id);
+                    const isFull = c.is_full;
+                    const canEnroll = !alreadyEnrolled && !isFull;
+
+                    let buttonLabel = "Enroll";
+                    if (alreadyEnrolled) buttonLabel = "Enrolled";
+                    else if (isFull) buttonLabel = "Full";
+
+                    return (
+                      <tr key={c.id}>
+                        <td>{c.course_code}</td>
+                        <td>{c.course_name}</td>
+                        <td>{c.teacher_name}</td>
+                        <td>{c.time_schedule}</td>
+                        <td>{c.enrolled}</td>
+                        <td>{c.capacity}</td>
+                        <td>
+                          <button
+                            onClick={() => handleEnroll(c.id)}
+                            disabled={!canEnroll || enrollingId === c.id}
+                          >
+                            {enrollingId === c.id ? "Enrolling..." : buttonLabel}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
