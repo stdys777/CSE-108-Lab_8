@@ -1,40 +1,54 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./stylesheet.css";
 
 import { Box, Container } from "@mui/system";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { TextField, Button } from "@mui/material";
 
 const theme = createTheme({
   palette: { main: "#5b9bd5" },
 });
 
-export default function StudentLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+export default function StudentPage() {
+  const [me, setMe] = useState(null);
+  const [myCourses, setMyCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  function handleLogin(e) {
-    e.preventDefault();
+  useEffect(() => {
+    fetch("/api/current-user", { credentials: "include" })
+      .then((res) => {
+        if (res.status === 401) {
+          window.location.href = "/";
+          return null;
+        }
+        return res.json();
+      })
+      .then((user) => {
+        if (user) {
+          setMe(user);
+          loadCourses();
+        }
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-    fetch("/api/login", {
+  function loadCourses() {
+    fetch("/api/my-courses", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => setMyCourses(data));
+  }
+
+  function logout() {
+    fetch("/api/logout", {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.success) {
-          setError("Invalid username or password");
-        } else {
-          if (data.user.role === "student") window.location.href = "/student";
-          if (data.user.role === "teacher") window.location.href = "/teacher";
-          if (data.user.role === "admin") window.location.href = "/admin";
-        }
-      });
+    }).then(() => {
+      window.location.href = "/";
+    });
   }
+
+  if (loading) return <p>Loading...</p>;
+  if (!me) return null;
 
   return (
     <ThemeProvider theme={theme}>
@@ -45,33 +59,43 @@ export default function StudentLogin() {
 
         <Box className="content">
           <Box className="title">
-            <p>Student Login</p>
+            <p>Welcome, {me.full_name}</p>
           </Box>
 
           <Box className="class">
-            <form onSubmit={handleLogin}>
-              <p>Username</p>
-              <TextField
-                fullWidth
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+            <h2>Your Enrolled Courses</h2>
 
-              <p>Password</p>
-              <TextField
-                type="password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            {myCourses.length === 0 ? (
+              <p>You are not enrolled in any courses.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Course</th>
+                    <th>Name</th>
+                    <th>Teacher</th>
+                    <th>Schedule</th>
+                    <th>Enrolled</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myCourses.map((c) => (
+                    <tr key={c.id}>
+                      <td>{c.course_code}</td>
+                      <td>{c.course_name}</td>
+                      <td>{c.teacher_name}</td>
+                      <td>{c.time_schedule}</td>
+                      <td>
+                        {c.enrolled}/{c.capacity}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
 
-              <br />
-              <Button type="submit" variant="contained">
-                Login
-              </Button>
-
-              {error && <p>{error}</p>}
-            </form>
+            <br />
+            <button onClick={logout}>Logout</button>
           </Box>
         </Box>
       </Container>
