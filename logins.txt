@@ -1,0 +1,11 @@
+Student
+username: cnorris
+password: password
+
+Teacher
+username: ahepworth
+password: password
+
+Admin
+username: admin
+password: admintest
