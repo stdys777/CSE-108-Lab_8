@@ -196,29 +196,41 @@ def get_courses():
 def get_my_courses():
     """Get courses for current user (student or teacher)"""
     if current_user.role == 'student':
-        courses = current_user.enrolled_courses
-        return jsonify([{
-            'id': course.id,
-            'course_code': course.course_code,
-            'course_name': course.course_name,
-            'teacher_name': course.teacher.full_name,
-            'time_schedule': course.time_schedule,
-            'enrolled': course.current_enrollment(),
-            'capacity': course.capacity
-        } for course in courses])
-    
+        result = db.session.query(Course, enrollments.c.grade) \
+            .join(enrollments, Course.id == enrollments.c.course_id) \
+            .filter(enrollments.c.student_id == current_user.id) \
+            .all()
+
+        return jsonify([
+            {
+                'id': course.id,
+                'course_code': course.course_code,
+                'course_name': course.course_name,
+                'teacher_name': course.teacher.full_name,
+                'time_schedule': course.time_schedule,
+                'enrolled': course.current_enrollment(),
+                'capacity': course.capacity,
+                'grade': grade
+            }
+            for course, grade in result
+        ])
+
     elif current_user.role == 'teacher':
         courses = current_user.taught_courses
-        return jsonify([{
-            'id': course.id,
-            'course_code': course.course_code,
-            'course_name': course.course_name,
-            'time_schedule': course.time_schedule,
-            'enrolled': course.current_enrollment(),
-            'capacity': course.capacity
-        } for course in courses])
-    
+        return jsonify([
+            {
+                'id': course.id,
+                'course_code': course.course_code,
+                'course_name': course.course_name,
+                'time_schedule': course.time_schedule,
+                'enrolled': course.current_enrollment(),
+                'capacity': course.capacity
+            }
+            for course in courses
+        ])
+
     return jsonify([])
+
 
 @app.route('/api/enroll/<int:course_id>', methods=['POST'])
 @login_required
