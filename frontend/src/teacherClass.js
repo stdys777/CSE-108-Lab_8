@@ -76,8 +76,8 @@ export default function TeacherClass() {
     })
       .then(response => {
         if (response.ok) {
-          // back to login 
-          navigate('/');
+          // Use window.location instead of navigate to go to Flask route
+          window.location.href = '/login';
         }
       })
       .catch(error => {

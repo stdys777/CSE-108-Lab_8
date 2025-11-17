@@ -5,7 +5,7 @@ import { Box, Container } from "@mui/system";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
-const API = "http://localhost:5000";
+//const API = "http://localhost:5000";
 
 const theme = createTheme({
   palette: { main: "#5b9bd5" },
@@ -21,7 +21,7 @@ export default function StudentPage() {
 
   // Load current user
   useEffect(() => {
-    fetch(`${API}/api/current-user`, { credentials: "include" })
+    fetch(`/api/current-user`, { credentials: "include" })
       .then((res) => {
         if (res.status === 401) {
           window.location.href = "/";
@@ -41,21 +41,21 @@ export default function StudentPage() {
 
   // Load student’s enrolled courses
   function loadMyCourses() {
-    fetch(`${API}/api/my-courses`, { credentials: "include" })
+    fetch(`/api/my-courses`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setMyCourses(data));
   }
 
   // Load all available courses
   function loadAllCourses() {
-    fetch(`${API}/api/courses`, { credentials: "include" })
+    fetch(`/api/courses`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setAllCourses(data));
   }
 
   // Logout
   function logout() {
-    fetch(`${API}/api/logout`, {
+    fetch(`/api/logout`, {
       method: "POST",
       credentials: "include",
     }).then(() => {
@@ -68,7 +68,7 @@ export default function StudentPage() {
     setEnrollingId(courseId);
     setMessage(null);
 
-    fetch(`${API}/api/enroll/${courseId}`, {
+    fetch(`/api/enroll/${courseId}`, {
       method: "POST",
       credentials: "include",
     })

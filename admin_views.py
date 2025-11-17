@@ -182,6 +182,6 @@ def init_admin(app, db, bcrypt):
     admin.add_view(CourseAdminView(Course, db.session, name='Courses'))
     
     # Add logout link to navbar
-    admin.add_link(MenuLink(name='Logout', url='/logout'))
+    admin.add_link(MenuLink(name='Logout', endpoint='logout_redirect'))
     
     return admin
