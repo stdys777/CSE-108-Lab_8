@@ -5,6 +5,8 @@ import { Box, Container } from "@mui/system";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
+const API = "http://localhost:5000";
+
 const theme = createTheme({
   palette: { main: "#5b9bd5" },
 });
@@ -17,8 +19,9 @@ export default function StudentPage() {
   const [enrollingId, setEnrollingId] = useState(null);
   const [message, setMessage] = useState(null);
 
+  // Load current user
   useEffect(() => {
-    fetch("/api/current-user", { credentials: "include" })
+    fetch(`${API}/api/current-user`, { credentials: "include" })
       .then((res) => {
         if (res.status === 401) {
           window.location.href = "/";
@@ -36,20 +39,23 @@ export default function StudentPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Load student’s enrolled courses
   function loadMyCourses() {
-    fetch("/api/my-courses", { credentials: "include" })
+    fetch(`${API}/api/my-courses`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setMyCourses(data));
   }
 
+  // Load all available courses
   function loadAllCourses() {
-    fetch("/api/courses", { credentials: "include" })
+    fetch(`${API}/api/courses`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setAllCourses(data));
   }
 
+  // Logout
   function logout() {
-    fetch("/api/logout", {
+    fetch(`${API}/api/logout`, {
       method: "POST",
       credentials: "include",
     }).then(() => {
@@ -57,11 +63,12 @@ export default function StudentPage() {
     });
   }
 
+  // Enroll student in a course
   function handleEnroll(courseId) {
     setEnrollingId(courseId);
     setMessage(null);
 
-    fetch(`/api/enroll/${courseId}`, {
+    fetch(`${API}/api/enroll/${courseId}`, {
       method: "POST",
       credentials: "include",
     })
@@ -106,7 +113,6 @@ export default function StudentPage() {
               <p style={{ color: "yellow", marginBottom: "10px" }}>{message}</p>
             )}
 
-            {/* Enrolled courses + grades */}
             <h2>Your Enrolled Courses</h2>
 
             {myCourses.length === 0 ? (
@@ -142,7 +148,6 @@ export default function StudentPage() {
 
             <hr style={{ margin: "20px 0" }} />
 
-            {/* All available courses */}
             <h2>All Courses Offered</h2>
 
             {allCourses.length === 0 ? (
