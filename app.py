@@ -24,9 +24,11 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # -------- Admin Panel --------
+# -------- Admin Panel --------
 from admin_views import init_admin
 init_admin(app, db, bcrypt)
 
+# -------- Create sample data (only once) --------
 # -------- Create sample data (only once) --------
 def create_sample_data():
     admin = User(
@@ -45,6 +47,7 @@ def create_sample_data():
         role='teacher'
     )
 
+
     teacher2 = User(
         username='swalker',
         password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
@@ -52,6 +55,7 @@ def create_sample_data():
         email='swalker@acme.edu',
         role='teacher'
     )
+
 
     student1 = User(
         username='cnorris',
@@ -61,6 +65,7 @@ def create_sample_data():
         role='student'
     )
 
+
     student2 = User(
         username='msmith',
         password_hash=bcrypt.generate_password_hash('password').decode('utf-8'),
@@ -69,8 +74,10 @@ def create_sample_data():
         role='student'
     )
 
+
     db.session.add_all([admin, teacher1, teacher2, student1, student2])
     db.session.commit()
+
 
     course1 = Course(
         course_code='CS 106',
@@ -80,6 +87,7 @@ def create_sample_data():
         capacity=10
     )
 
+
     course2 = Course(
         course_code='CS 162',
         course_name='Data Structures',
@@ -87,6 +95,7 @@ def create_sample_data():
         time_schedule='TR 3:00-3:50 PM',
         capacity=4
     )
+
 
     course3 = Course(
         course_code='Physics 121',
@@ -96,12 +105,15 @@ def create_sample_data():
         capacity=10
     )
 
+
     db.session.add_all([course1, course2, course3])
     db.session.commit()
+
 
     student1.enrolled_courses.append(course1)
     student1.enrolled_courses.append(course3)
     db.session.commit()
+
 
 
 with app.app_context():
@@ -112,6 +124,9 @@ with app.app_context():
 # -------------------------------------------------------
 #                    AUTH ROUTES
 # -------------------------------------------------------
+# -------------------------------------------------------
+#                    AUTH ROUTES
+# -------------------------------------------------------
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -119,11 +134,17 @@ def login():
     from login_page import render_login_page
 
     if request.method == "GET":
+
+    if request.method == "GET":
         return render_login_page()
 
     username = request.form.get("username")
     password = request.form.get("password")
+
+    username = request.form.get("username")
+    password = request.form.get("password")
     user = User.query.filter_by(username=username).first()
+
 
     if user and bcrypt.check_password_hash(user.password_hash, password):
         login_user(user)
@@ -140,7 +161,11 @@ def login():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     """Login used by React frontend."""
+    """Login used by React frontend."""
     data = request.json
+    user = User.query.filter_by(username=data.get("username")).first()
+
+    if user and bcrypt.check_password_hash(user.password_hash, data.get("password")):
     user = User.query.filter_by(username=data.get("username")).first()
 
     if user and bcrypt.check_password_hash(user.password_hash, data.get("password")):
@@ -161,20 +186,29 @@ def api_login():
 #                  STUDENT + TEACHER API
 # -------------------------------------------------------
 
+# -------------------------------------------------------
+#                  STUDENT + TEACHER API
+# -------------------------------------------------------
+
 @app.route('/api/logout', methods=['POST'])
 @login_required
+def api_logout():
 def api_logout():
     logout_user()
     return jsonify({'success': True})
 
 @app.route('/logout')
+@app.route('/logout')
 @login_required
+def logout_redirect():
 def logout_redirect():
     logout_user()
     return redirect('/login')
 
 @app.route('/api/current-user')
+@app.route('/api/current-user')
 @login_required
+def api_current_user():
 def api_current_user():
     return jsonify({
         'id': current_user.id,
@@ -184,7 +218,10 @@ def api_current_user():
     })
 
 @app.route('/api/courses')
+@app.route('/api/courses')
 @login_required
+def api_courses():
+    """Return all courses with enrollment info."""
 def api_courses():
     """Return all courses with enrollment info."""
     courses = Course.query.all()
@@ -201,9 +238,26 @@ def api_courses():
         }
         for c in courses
     ])
+    return jsonify([
+        {
+            'id': c.id,
+            'course_code': c.course_code,
+            'course_name': c.course_name,
+            'teacher_name': c.teacher.full_name,
+            'time_schedule': c.time_schedule,
+            'enrolled': c.current_enrollment(),
+            'capacity': c.capacity,
+            'is_full': c.is_full()
+        }
+        for c in courses
+    ])
 
 @app.route('/api/my-courses')
+@app.route('/api/my-courses')
 @login_required
+def api_my_courses():
+    """Return student's courses OR teacher's courses."""
+    if current_user.role == "student":
 def api_my_courses():
     """Return student's courses OR teacher's courses."""
     if current_user.role == "student":
@@ -227,6 +281,7 @@ def api_my_courses():
         ])
 
     if current_user.role == "teacher":
+    if current_user.role == "teacher":
         return jsonify([
             {
                 'id': c.id,
@@ -235,7 +290,14 @@ def api_my_courses():
                 'time_schedule': c.time_schedule,
                 'enrolled': c.current_enrollment(),
                 'capacity': c.capacity
+                'id': c.id,
+                'course_code': c.course_code,
+                'course_name': c.course_name,
+                'time_schedule': c.time_schedule,
+                'enrolled': c.current_enrollment(),
+                'capacity': c.capacity
             }
+            for c in current_user.taught_courses
             for c in current_user.taught_courses
         ])
 
@@ -245,18 +307,25 @@ def api_my_courses():
 @login_required
 def api_enroll(course_id):
     if current_user.role != "student":
+def api_enroll(course_id):
+    if current_user.role != "student":
         return jsonify({'success': False, 'message': 'Only students can enroll'}), 403
 
+
     course = Course.query.get_or_404(course_id)
+
 
     if course.is_full():
         return jsonify({'success': False, 'message': 'Course is full'}), 400
 
+
     if course in current_user.enrolled_courses:
         return jsonify({'success': False, 'message': 'Already enrolled'}), 400
 
+
     current_user.enrolled_courses.append(course)
     db.session.commit()
+
 
     return jsonify({'success': True, 'message': 'Enrolled successfully'})
 
