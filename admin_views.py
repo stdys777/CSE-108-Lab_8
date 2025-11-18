@@ -3,8 +3,31 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_login import current_user
+from models import User
 from wtforms import PasswordField, SelectField
 from wtforms.validators import DataRequired, Length, Optional
+
+class MyAdminIndexView(AdminIndexView):
+    base_template = 'admin/custom_master.html'
+    
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.role == 'admin'
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect('/login')
+    @expose('/')
+    def index(self):
+        # Get all users
+        students = User.query.filter_by(role='student').all()
+        teachers = User.query.filter_by(role='teacher').all()
+        admins = User.query.filter_by(role='admin').all()
+
+        return self.render(
+            'admin/custom_index.html',
+            students=students,
+            teachers=teachers,
+            admins=admins
+        )
 
 class SecureAdminIndexView(AdminIndexView):
     @expose('/')
@@ -175,7 +198,7 @@ def init_admin(app, db, bcrypt):
     admin = Admin(
         app, 
         name='ACME Admin Portal',
-        index_view=SecureAdminIndexView()
+        index_view=MyAdminIndexView()
     )
     
     admin.add_view(UserAdminView(User, db.session, bcrypt, name='Users'))

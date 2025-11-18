@@ -1,0 +1,95 @@
+{% extends 'admin/custom_master.html' %}
+
+{% block body %}
+<div class="container mt-4">
+
+    <h2 class="mb-4 text-center">ACME Admin Dashboard</h2>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Students</h5>
+                    <h2 class="text-primary">{{ students|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Teachers</h5>
+                    <h2 class="text-success">{{ teachers|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Admins</h5>
+                    <h2 class="text-danger">{{ admins|length }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Lists -->
+    <div class="row">
+        <!-- Students -->
+        <div class="col-md-6 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    Students
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for s in students %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ s.full_name }}
+                        <span class="text-muted">{{ s.username }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Teachers -->
+        <div class="col-md-6 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    Teachers
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for t in teachers %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ t.full_name }}
+                        <span class="text-muted">{{ t.username }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admins -->
+        <div class="col-md-12 mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    Administrators
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for a in admins %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ a.full_name }}
+                        <span class="text-muted">{{ a.username }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
