@@ -43,9 +43,15 @@ export default function TeacherClass() {
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [students, setStudents] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
 
   useEffect(() => {
+    fetch('/api/current-user', { credentials: 'include' })
+      .then(response => response.json())
+      .then(setCurrentUser)
+      .catch(error => console.error('Error fetching user:', error));
+
     fetch('/api/courses', { credentials: 'include' })
       .then(responseCourse => {
         return responseCourse.json();
@@ -76,8 +82,8 @@ export default function TeacherClass() {
     })
       .then(response => {
         if (response.ok) {
-          // back to login 
-          navigate('/');
+          // Use window.location instead of navigate to go to Flask route
+          window.location.href = '/login';
         }
       })
       .catch(error => {
@@ -124,7 +130,7 @@ export default function TeacherClass() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container className="background">
-
+        {currentUser && <p style={{ color: 'black', margin: 0 }}>Welcome, {currentUser.full_name}</p>}
         <h1>UC Merced</h1>
         <a
           onClick={handleSignOut}
