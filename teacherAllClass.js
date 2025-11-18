@@ -36,11 +36,16 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 export default function TeacherAllClass() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
   useEffect(() => {
+    fetch('/api/current-user', { credentials: 'include' })
+      .then(response => response.json())
+      .then(setCurrentUser)
+      .catch(error => console.error('Error fetching user:', error));
+
     fetch('/api/my-courses', { credentials: 'include' })
-      .then(response => {
-        return response.json();
-      })
+      .then(response => response.json())
       .then(setCourses)
   }, []);
 
@@ -51,8 +56,7 @@ export default function TeacherAllClass() {
     })
       .then(response => {
         if (response.ok) {
-          // back to login 
-          navigate('/');
+          window.location.href = '/login';
         }
       })
       .catch(error => {
@@ -64,6 +68,7 @@ export default function TeacherAllClass() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container className="background" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {currentUser && <p style={{ color: 'black', margin: 0 }}>Welcome, {currentUser.full_name}</p>}
         <h1>UC Merced</h1>
         <a
           onClick={handleSignOut}
