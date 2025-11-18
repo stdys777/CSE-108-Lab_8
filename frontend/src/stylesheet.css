@@ -1,7 +1,5 @@
 /* Full-width centered page container */
 .background {
-/* Full-width centered page container */
-.background {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -9,24 +7,11 @@
     width: 100%;
     min-height: 200px;
     padding: 20px 0;
-}
-
-/* Inner content box */
-.content {
-    background-color: #ADD8E6;
-    width: 100%;
-    min-height: 200px;
-    padding: 20px 0;
-}
-
-/* Inner content box */
-.content {
+  }
+  
+  /* Inner content box */
+  .content {
     background-color: #5b9bd5;
-    width: 80%;      
-    max-width: 1200px;
-    min-height: 600px;
-    border-radius: 6px;
-    padding-bottom: 30px;
     width: 80%;      
     max-width: 1200px;
     min-height: 600px;
@@ -35,10 +20,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* Header/title bar inside content */
-.title {
+  }
+  
+  /* Header/title bar inside content */
+  .title {
     width: 100%;
     padding: 20px 0;
     text-align: center;
@@ -46,67 +31,34 @@
     font-weight: bold;
     color: white;
     background-color: #5b9bd5;
-}
-
-/* Scrollable class section */
-.class {
-    width: 90%;
-    margin-top: 20px;
-/* Header/title bar inside content */
-.title {
-    width: 100%;
-    padding: 20px 0;
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    background-color: #5b9bd5;
-}
-
-/* Scrollable class section */
-.class {
+  }
+  
+  /* Scrollable class section */
+  .class {
     width: 90%;
     margin-top: 20px;
     color: black;
-}
-
-/* Table styling */
-table {
+  }
+  
+  /* Table styling */
+  table {
     width: 100%;
     border-collapse: collapse;
-}
-
-th {
+  }
+  
+  th {
     padding: 10px;
     background-color: #99a6ff;
     color: white;
-}
-
-td {
+  }
+  
+  td {
     padding: 10px;
     background-color: rgba(255,255,255,0.8);
-/* Table styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th {
-    padding: 10px;
-    background-color: #99a6ff;
-    color: white;
-}
-
-td {
-    padding: 10px;
-    background-color: rgba(255,255,255,0.8);
-}
-
-/* Blue text from student page */
-p {
-/* Blue text from student page */
-p {
+  }
+  
+  /* Blue text from student page */
+  p {
     color: aliceblue;
     text-align: center;
-    text-align: center;
-}
+  }
